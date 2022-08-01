@@ -36,11 +36,10 @@ def signup(request):
                 new_profile = Profile.objects.create(user=user_model, id_user=user_model.id)
                 new_profile.save()
 
-                redirect('login')
-
                 # TODO log user in and also redirect them to setting page
-                # auth.login(request, user)
-                # return HttpResponse("Success")
+                user_login = auth.authenticate(username=username, password=password)
+                auth.login(request, user_login)
+                return redirect("settings")
 
 
         else:
@@ -50,7 +49,6 @@ def signup(request):
 
     else:
         return render(request, template_name)
-
 
 
 def login(request):
@@ -73,3 +71,30 @@ def login(request):
 def logout(request):
     auth.logout(request)
     return redirect('login')
+
+@login_required(login_url='login')
+def settings(request):
+    template_name = 'setting.html'
+    user_profile = Profile.objects.get(user=request.user)
+    if request.method == "POST": 
+        if request.FILES.get('image') == None:
+            image = user_profile.profile_image
+            bio = request.POST['bio']
+            location = request.POST['location']
+
+            user_profile.profile_image = image
+            user_profile.bio = bio
+            user_profile.location = location
+            user_profile.save()
+        if request.FILES.get('image') != None:
+            image = request.FILES.get('image')
+            bio = request.POST['bio']
+            location = request.POST['location']
+
+            user_profile.profile_image = image
+            user_profile.bio = bio
+            user_profile.location = location
+            user_profile.save()
+            
+        return redirect('settings')
+    return render(request, template_name, {'user_profile':user_profile})
