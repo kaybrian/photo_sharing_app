@@ -8,8 +8,10 @@ from django.contrib.auth.decorators import login_required
 
 @login_required(login_url='login')
 def index(request):
+    user_object = User.objects.get(username=request.user.username)
+    user_profile = Profile.objects.get(user=user_object)
     template_name = 'index.html'
-    return render(request, template_name)
+    return render(request, template_name,{'user_profile':user_profile})
 
 
 def signup(request):
@@ -98,3 +100,8 @@ def settings(request):
             
         return redirect('settings')
     return render(request, template_name, {'user_profile':user_profile})
+
+
+@login_required(login_url='login')
+def upload(request):
+    return HttpResponse('<h1>Uploading</h1>')
