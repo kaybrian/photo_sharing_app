@@ -2,16 +2,17 @@ from django.shortcuts import render,redirect
 from django.http import HttpResponse
 from django.contrib.auth.models import User, auth 
 from django .contrib import messages
-from .models import Profile
+from .models import Profile, Post
 from django.contrib.auth.decorators import login_required
 
 
 @login_required(login_url='login')
 def index(request):
+    posts = Post.objects.all()
     user_object = User.objects.get(username=request.user.username)
     user_profile = Profile.objects.get(user=user_object)
     template_name = 'index.html'
-    return render(request, template_name,{'user_profile':user_profile})
+    return render(request, template_name,{'user_profile':user_profile, 'posts':posts})
 
 
 def signup(request):
@@ -88,6 +89,7 @@ def settings(request):
             user_profile.bio = bio
             user_profile.location = location
             user_profile.save()
+            
         if request.FILES.get('image') != None:
             image = request.FILES.get('image')
             bio = request.POST['bio']
@@ -104,4 +106,20 @@ def settings(request):
 
 @login_required(login_url='login')
 def upload(request):
-    return HttpResponse('<h1>Uploading</h1>')
+    if request.method == 'POST':
+        user = request.user.username 
+        image = request.FILES.get('image_upload')
+        caption = request.POST['caption']
+
+        new_post = Post.objects.create(user=user, caption=caption, image=image)
+        new_post.save()
+
+        return redirect('/')
+    else:
+        return redirect('/')
+
+
+@login_required(login_url='login')
+def like_post(request):
+    pass
+
