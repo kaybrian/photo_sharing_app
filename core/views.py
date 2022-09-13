@@ -2,7 +2,7 @@ from django.shortcuts import render,redirect
 from django.http import HttpResponse
 from django.contrib.auth.models import User, auth 
 from django .contrib import messages
-from .models import Profile, Post, LikePost
+from .models import Profile, Post, LikePost,FollowersCount
 from django.contrib.auth.decorators import login_required
 
 
@@ -153,5 +153,24 @@ def profile(request,pk):
         'user_posts_length':user_posts_length,
         'user_posts':user_posts,
     }
-    
+
     return render(request, 'profile.html',context)
+
+
+@login_required(login_url='login')
+def follow(request):
+    if request.method == 'POST':
+        follower = request.POST['follower']
+        user =  request.POST['user']
+
+        if FollowersCount.objects.filter(follower=follower, user=user).first():
+            delete_follower = FollowersCount.objects.get(follower=follower, user=user)
+            delete_follower.delete()
+            redirect('/profile/'+user)
+
+        else:
+            new_follwer = FollowersCount.objects.create(follower=follower,user=user)
+            new_follwer.save()
+            redirect('/profile/'+user)
+    else:
+        return redirect('/')
